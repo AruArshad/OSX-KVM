@@ -8,10 +8,42 @@ AssetCacheManagerUtil[] Failed to activate content caching: Error Domain=ACSMErr
 ```
 
 It seems that the `Content Caching` functionality is not available when macOS
-is running in a virtual machine.
+is running in a virtual machine. How can we enable this feature on our macOS
+VM?
+
+
+#### April 2020 Update
+
+I was able to patch the Catalina 10.15.4 kernel to disable the VMM detection.
+
+Original function:
+
+![Original function](screenshots/macOS-kernel-patching-1.png)
+
+Patched function:
+
+![Patched function](screenshots/macOS-kernel-patching-2.png)
+
+See `bsd/dev/i386/sysctl.c 138: cpuid_get_feature_names(cpuid_features` for details.
+
+
+Useful commands:
+
+```
+sudo mount -uw /
+
+sudo mv /System/Library/Kernels/kernel /System/Library/Kernels/kernel.bak
+
+sudo kextcache -i /
+```
 
 
 #### March 2020 Update
+
+Update: This approach causes the macOS VM to consume multiple CPU(s) 100% on
+the host!
+
+See `osfmk/i386/tsc.c 142: if (cpuid_vmm_present()) {` for details.
 
 Instead of trying to hack things from within the VM, we can turn off VMM
 detection from the outside.
